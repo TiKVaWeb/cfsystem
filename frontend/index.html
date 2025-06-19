@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codeforces Contest Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lavender: {
+                            100: '#f4f1f9',
+                            200: '#e2d6f2',
+                            300: '#c9b4e5',
+                            400: '#a98bd5',
+                            500: '#8a63c2',
+                            600: '#7248a8',
+                            700: '#5d3a87',
+                        },
+                        rose: {
+                            100: '#fff0f3',
+                            200: '#ffd6e4',
+                            300: '#ffb3d1',
+                            400: '#ff80b5',
+                            500: '#f95d9b',
+                            600: '#e8367a',
+                            700: '#c81d5d',
+                        },
+                        mint: {
+                            100: '#f0fdf4',
+                            200: '#dcfce7',
+                            300: '#bbf7d0',
+                            400: '#86efac',
+                            500: '#4ade80',
+                            600: '#22c55e',
+                            700: '#16a34a',
+                        },
+                        peach: {
+                            100: '#fff1f2',
+                            200: '#ffe4e6',
+                            300: '#fecdd3',
+                            400: '#fda4af',
+                            500: '#fb7185',
+                            600: '#f43f5e',
+                            700: '#e11d48',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-lavender-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-lavender-700">
+                    <i class="fas fa-trophy mr-2"></i>Codeforces Contest Manager
+                </h1>
+                <div class="flex space-x-4">
+                    <button id="sync-data" class="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Sync Data
+                    </button>
+                    <button class="bg-mint-500 hover:bg-mint-600 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-user mr-2"></i>Profile
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar -->
+            <aside class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-6">
+                    <h2 class="text-xl font-semibold text-lavender-700 mb-4">Navigation</h2>
+                    <nav>
+                        <ul class="space-y-2">
+                            <li>
+                                <a href="#contests" class="flex items-center px-4 py-2 rounded-lg bg-lavender-200 text-lavender-700 font-medium nav-link active" data-target="contests">
+                                    <i class="fas fa-calendar-alt mr-3"></i> Contests
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#problems" class="flex items-center px-4 py-2 rounded-lg hover:bg-lavender-100 text-lavender-600 transition nav-link" data-target="problems">
+                                    <i class="fas fa-tasks mr-3"></i> Problems
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#statistics" class="flex items-center px-4 py-2 rounded-lg hover:bg-lavender-100 text-lavender-600 transition nav-link" data-target="statistics">
+                                    <i class="fas fa-chart-bar mr-3"></i> Statistics
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#settings" class="flex items-center px-4 py-2 rounded-lg hover:bg-lavender-100 text-lavender-600 transition nav-link" data-target="settings">
+                                    <i class="fas fa-cog mr-3"></i> Settings
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold text-lavender-700 mb-3">Quick Filters</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Contest Phase</label>
+                                <select id="quick-phase-filter" class="w-full px-3 py-2 border border-lavender-300 rounded-lg focus:ring-lavender-500 focus:border-lavender-500">
+                                    <option value="">All Phases</option>
+                                    <option value="FINISHED">Finished</option>
+                                    <option value="RUNNING">Running</option>
+                                    <option value="BEFORE">Upcoming</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Problem Rating</label>
+                                <select id="quick-rating-filter" class="w-full px-3 py-2 border border-lavender-300 rounded-lg focus:ring-lavender-500 focus:border-lavender-500">
+                                    <option value="">Any Rating</option>
+                                    <option value="800-1200">800-1200</option>
+                                    <option value="1200-1600">1200-1600</option>
+                                    <option value="1600-2000">1600-2000</option>
+                                    <option value="2000-3500">2000+</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="lg:col-span-3 space-y-8">
+                <!-- Contests Section -->
+                <section id="contests" class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-lavender-700">Contests</h2>
+                        <div class="flex space-x-3">
+                            <div class="relative">
+                                <input id="contest-search" type="text" placeholder="Search contests..." class="pl-10 pr-4 py-2 border border-lavender-300 rounded-lg focus:ring-lavender-500 focus:border-lavender-500 w-64">
+                                <i class="fas fa-search absolute left-3 top-3 text-lavender-400"></i>
+                            </div>
+                            <button id="contest-filter-btn" class="bg-peach-500 hover:bg-peach-600 text-white px-4 py-2 rounded-lg transition">
+                                <i class="fas fa-filter mr-2"></i>Filters
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contest Filters (expanded) -->
+                    <div id="contest-filters" class="mb-6 bg-lavender-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Contest Type</label>
+                                <select id="contest-type-filter" class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                                    <option value="">All Types</option>
+                                    <option value="CF">CF</option>
+                                    <option value="IOI">IOI</option>
+                                    <option value="ICPC">ICPC</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Duration (min)</label>
+                                <input id="min-duration" type="number" placeholder="Min" class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Duration (max)</label>
+                                <input id="max-duration" type="number" placeholder="Max" class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Start Date From</label>
+                                <input id="start-time-from" type="date" class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Start Date To</label>
+                                <input id="start-time-to" type="date" class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                            </div>
+                            <div class="flex items-end">
+                                <button id="apply-contest-filters" class="bg-mint-500 hover:bg-mint-600 text-white px-4 py-2 rounded-lg transition w-full">
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contest List -->
+                    <div id="contest-list" class="space-y-4">
+                        <!-- Contest items will be loaded here dynamically -->
+                        <div class="text-center py-8 text-lavender-500">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p>Loading contests...</p>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="mt-6 flex justify-center">
+                        <nav id="contest-pagination" class="inline-flex rounded-md shadow">
+                            <a href="#" class="prev-page px-3 py-2 rounded-l-md border border-lavender-300 bg-white text-lavender-700 hover:bg-lavender-50">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                            <div class="page-numbers flex">
+                                <!-- Pages will be inserted here -->
+                            </div>
+                            <a href="#" class="next-page px-3 py-2 rounded-r-md border border-lavender-300 bg-white text-lavender-700 hover:bg-lavender-50">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </nav>
+                    </div>
+                </section>
+
+                <!-- Problems Section -->
+                <section id="problems" class="bg-white rounded-xl shadow-md p-6 hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-lavender-700">Problems</h2>
+                        <div class="flex space-x-3">
+                            <div class="relative">
+                                <input id="problem-search" type="text" placeholder="Search problems..." class="pl-10 pr-4 py-2 border border-lavender-300 rounded-lg focus:ring-lavender-500 focus:border-lavender-500 w-64">
+                                <i class="fas fa-search absolute left-3 top-3 text-lavender-400"></i>
+                            </div>
+                            <button id="problem-filter-btn" class="bg-peach-500 hover:bg-peach-600 text-white px-4 py-2 rounded-lg transition">
+                                <i class="fas fa-filter mr-2"></i>Filters
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Problem Filters (expanded) -->
+                    <div id="problem-filters" class="mb-6 bg-lavender-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Rating Min</label>
+                                <input id="min-rating" type="number" placeholder="800" class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Rating Max</label>
+                                <input id="max-rating" type="number" placeholder="3500" class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Tags</label>
+                                <select id="problem-tags" multiple class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                                    <option value="dp">DP</option>
+                                    <option value="graphs">Graph</option>
+                                    <option value="math">Math</option>
+                                    <option value="greedy">Greedy</option>
+                                    <option value="data_structures">Data Structures</option>
+                                    <option value="brute_force">Brute Force</option>
+                                    <option value="implementation">Implementation</option>
+                                    <option value="binary_search">Binary Search</option>
+                                    <option value="trees">Trees</option>
+                                    <option value="strings">Strings</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-lavender-600 mb-1">Solved Count Min</label>
+                                <input id="min-solved" type="number" placeholder="1000" class="w-full px-3 py-2 border border-lavender-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="checkbox-container block text-sm font-medium text-lavender-600 mb-1">
+                                    <input id="include-null-rating" type="checkbox" class="rounded text-mint-500 focus:ring-mint-500 mr-2">
+                                    Include problems without rating
+                                </label>
+                            </div>
+                            <div class="flex items-end">
+                                <button id="apply-problem-filters" class="bg-mint-500 hover:bg-mint-600 text-white px-4 py-2 rounded-lg transition w-full">
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Problem List -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-lavender-200">
+                            <thead class="bg-lavender-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-lavender-700 uppercase tracking-wider">ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-lavender-700 uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-lavender-700 uppercase tracking-wider">Rating</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-lavender-700 uppercase tracking-wider">Solved</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-lavender-700 uppercase tracking-wider">Tags</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-lavender-700 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="problem-list" class="bg-white divide-y divide-lavender-200">
+                                <!-- Problem rows will be loaded here dynamically -->
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 text-lavender-500">
+                                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                        <p>Loading problems...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="mt-6 flex justify-center">
+                        <nav id="problem-pagination" class="inline-flex rounded-md shadow">
+                            <a href="#" class="prev-page px-3 py-2 rounded-l-md border border-lavender-300 bg-white text-lavender-700 hover:bg-lavender-50">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                            <div class="page-numbers flex">
+                                <!-- Pages will be inserted here -->
+                            </div>
+                            <a href="#" class="next-page px-3 py-2 rounded-r-md border border-lavender-300 bg-white text-lavender-700 hover:bg-lavender-50">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </nav>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Contest Detail Modal -->
+    <div id="contest-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 id="contest-modal-title" class="text-2xl font-bold text-lavender-700">Contest Title</h2>
+                        <div class="flex items-center mt-2 space-x-4 text-sm">
+                            <span id="contest-modal-date" class="text-lavender-600"><i class="fas fa-calendar mr-1"></i> </span>
+                            <span id="contest-modal-duration" class="text-lavender-600"><i class="fas fa-clock mr-1"></i> </span>
+                            <span id="contest-modal-phase" class="px-2 py-1 rounded-full text-xs"></span>
+                        </div>
+                    </div>
+                    <button id="close-modal" class="text-lavender-400 hover:text-lavender-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="mt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-lavender-700">Problems</h3>
+                        <button class="bg-mint-500 hover:bg-mint-600 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-bookmark mr-2"></i>Save Contest
+                        </button>
+                    </div>
+
+                    <div id="contest-problems" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Problem cards will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold text-lavender-700 mb-3">Contest Description</h3>
+                    <div class="prose max-w-none text-lavender-600">
+                        <p id="contest-description">Loading description...</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button id="modal-close-btn" class="px-4 py-2 border border-lavender-300 text-lavender-700 rounded-lg hover:bg-lavender-50 transition">
+                        Close
+                    </button>
+                    <a id="contest-link" href="#" target="_blank" class="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open on Codeforces
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App state
+        const state = {
+            currentTab: 'contests',
+            contests: {
+                data: [],
+                currentPage: 1,
+                pageSize: 10,
+                totalItems: 0,
+                filters: {
+                    name: '',
+                    contest_type: '',
+                    phase: '',
+                    min_duration: null,
+                    max_duration: null,
+                    start_time_from: null,
+                    start_time_to: null,
+                    min_problems: null,
+                    max_problems: null
+                }
+            },
+            problems: {
+                data: [],
+                currentPage: 1,
+                pageSize: 10,
+                totalItems: 0,
+                filters: {
+                    name: '',
+                    min_rating: null,
+                    max_rating: null,
+                    include_null_rating: false,
+                    tags: [],
+                    contest_id: null,
+                    min_solved_count: null
+                }
+            }
+        };
+
+        // DOM elements
+        const elements = {
+            contestList: document.getElementById('contest-list'),
+            problemList: document.getElementById('problem-list'),
+            contestPagination: document.getElementById('contest-pagination'),
+            problemPagination: document.getElementById('problem-pagination'),
+            contestModal: document.getElementById('contest-modal'),
+            contestModalTitle: document.getElementById('contest-modal-title'),
+            contestModalDate: document.getElementById('contest-modal-date'),
+            contestModalDuration: document.getElementById('contest-modal-duration'),
+            contestModalPhase: document.getElementById('contest-modal-phase'),
+            contestProblems: document.getElementById('contest-problems'),
+            contestDescription: document.getElementById('contest-description'),
+            contestLink: document.getElementById('contest-link'),
+            closeModal: document.getElementById('close-modal'),
+            modalCloseBtn: document.getElementById('modal-close-btn'),
+            contestFilterBtn: document.getElementById('contest-filter-btn'),
+            problemFilterBtn: document.getElementById('problem-filter-btn'),
+            contestFilters: document.getElementById('contest-filters'),
+            problemFilters: document.getElementById('problem-filters'),
+            applyContestFilters: document.getElementById('apply-contest-filters'),
+            applyProblemFilters: document.getElementById('apply-problem-filters'),
+            contestSearch: document.getElementById('contest-search'),
+            problemSearch: document.getElementById('problem-search'),
+            quickPhaseFilter: document.getElementById('quick-phase-filter'),
+            quickRatingFilter: document.getElementById('quick-rating-filter'),
+            syncDataBtn: document.getElementById('sync-data'),
+            navLinks: document.querySelectorAll('.nav-link'),
+            problemTags: document.getElementById('problem-tags'),
+            includeNullRating: document.getElementById('include-null-rating')
+        };
+
+        // API endpoints
+        const BASE_URL = window.location.origin.replace(/:\d+$/, ':8000');
+
+        const API = {
+            CONTESTS: `${BASE_URL}/cf/contests/`,
+            CONTEST_DETAIL: (id) => `${BASE_URL}/cf/contests/${id}`,
+            PROBLEMS: `${BASE_URL}/cf/problems/`,
+            CONTEST_PROBLEMS: (id) => `${BASE_URL}/cf/contests/${id}/problems/`,
+            SYNC_DATA: `${BASE_URL}/sync/`
+        };
+
+        // Format date for display
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Format duration for display
+        function formatDuration(seconds) {
+            if (!seconds) return 'N/A';
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return `${hours}h ${minutes}m`;
+        }
+
+        // Get phase display info
+        function getPhaseInfo(phase) {
+            switch (phase) {
+                case 'FINISHED':
+                    return { text: 'Finished', class: 'bg-mint-100 text-mint-700' };
+                case 'RUNNING':
+                    return { text: 'Running', class: 'bg-rose-100 text-rose-700' };
+                case 'BEFORE':
+                    return { text: 'Upcoming', class: 'bg-peach-100 text-peach-700' };
+                default:
+                    return { text: phase, class: 'bg-lavender-100 text-lavender-700' };
+            }
+        }
+
+        // Get rating color class
+        function getRatingClass(rating) {
+            if (!rating) return 'bg-gray-100 text-gray-700';
+            if (rating < 1000) return 'bg-gray-200 text-gray-700';
+            if (rating < 1200) return 'bg-green-100 text-green-700';
+            if (rating < 1400) return 'bg-teal-100 text-teal-700';
+            if (rating < 1600) return 'bg-blue-100 text-blue-700';
+            if (rating < 1900) return 'bg-purple-100 text-purple-700';
+            if (rating < 2100) return 'bg-yellow-100 text-yellow-700';
+            if (rating < 2400) return 'bg-orange-100 text-orange-700';
+            return 'bg-red-100 text-red-700';
+        }
+
+        // Fetch data from API with debugging
+        async function fetchData(url, params = {}) {
+            try {
+                // Convert params to URLSearchParams
+                const queryParams = new URLSearchParams();
+
+                for (const [key, value] of Object.entries(params)) {
+                    if (value !== null && value !== undefined) {
+                        if (Array.isArray(value)) {
+                            // Handle array parameters
+                            value.forEach(v => queryParams.append(key, v));
+                        } else {
+                            queryParams.append(key, value);
+                        }
+                    }
+                }
+
+                // Log the request URL for debugging
+                console.log("Request URL:", `${url}?${queryParams.toString()}`);
+
+                const response = await fetch(`${url}?${queryParams.toString()}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return [];
+            }
+        }
+
+        // Render contest list
+        function renderContests(contests) {
+            if (!contests || contests.length === 0) {
+                elements.contestList.innerHTML = `
+                    <div class="text-center py-8 text-lavender-500">
+                        <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                        <p>No contests found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            elements.contestList.innerHTML = '';
+            contests.forEach(contest => {
+                const phaseInfo = getPhaseInfo(contest.phase);
+                const duration = formatDuration(contest.duration);
+                const date = formatDate(contest.start_time);
+
+                const contestElement = document.createElement('div');
+                contestElement.className = 'border border-lavender-200 rounded-lg p-4 hover:shadow-md transition';
+                contestElement.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-semibold text-lavender-700">${contest.name}</h3>
+                            <div class="flex items-center mt-1 space-x-4 text-sm">
+                                <span class="text-lavender-600"><i class="fas fa-calendar mr-1"></i> ${date}</span>
+                                <span class="text-lavender-600"><i class="fas fa-clock mr-1"></i> ${duration}</span>
+                                <span class="${phaseInfo.class} px-2 py-1 rounded-full text-xs">${phaseInfo.text}</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="view-contest text-lavender-500 hover:text-lavender-700" data-id="${contest.id}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="text-mint-500 hover:text-mint-700">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <span class="bg-lavender-100 text-lavender-700 px-2 py-1 rounded-full text-xs">${contest.type || 'N/A'}</span>
+                        <span class="bg-lavender-100 text-lavender-700 px-2 py-1 rounded-full text-xs">${contest.problems?.length || 0} problems</span>
+                    </div>
+                `;
+                elements.contestList.appendChild(contestElement);
+            });
+
+            // Add event listeners to view buttons
+            document.querySelectorAll('.view-contest').forEach(button => {
+                button.addEventListener('click', () => {
+                    const contestId = button.getAttribute('data-id');
+                    showContestDetails(contestId);
+                });
+            });
+        }
+
+        // Render problem list
+        function renderProblems(problems) {
+            if (!problems || problems.length === 0) {
+                elements.problemList.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-lavender-500">
+                            <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                            <p>No problems found</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            elements.problemList.innerHTML = '';
+            problems.forEach(problem => {
+                // Исправление: берем первый элемент массива статистики
+                const statistics = problem.statistics?.length > 0 ? problem.statistics[0] : null;
+                const solvedCount = statistics?.solved_count || 'N/A';
+
+                // Исправление: преобразуем теги в массив имен
+                const tagNames = problem.tags?.map(tag => tag.name) || [];
+
+                const problemRow = document.createElement('tr');
+                problemRow.className = 'hover:bg-lavender-50 transition';
+                problemRow.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-lavender-700">${problem.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-lavender-600">${problem.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        ${problem.rating ? `
+                            <span class="px-2 py-1 ${getRatingClass(problem.rating)} rounded-full">
+                                ${problem.rating}
+                            </span>
+                        ` : 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-lavender-600">${solvedCount}</td>
+                    <td class="px-6 py-4 text-sm text-lavender-600">
+                        <div class="flex flex-wrap gap-1">
+                            ${tagNames.map(tag => `
+                                <span class="bg-lavender-100 text-lavender-700 px-2 py-1 rounded-full text-xs">${tag}</span>
+                            `).join('')}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-lavender-600">
+                        <a href="${problem.problem_url || '#'}" target="_blank" class="text-rose-500 hover:text-rose-700 mr-3">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button class="text-mint-500 hover:text-mint-700">
+                            <i class="fas fa-bookmark"></i>
+                        </button>
+                    </td>
+                `;
+                elements.problemList.appendChild(problemRow);
+            });
+        }
+
+        // Render pagination
+        function renderPagination(paginationElement, currentPage, totalPages) {
+            const pageNumbers = paginationElement.querySelector('.page-numbers');
+            pageNumbers.innerHTML = '';
+
+            // Previous page
+            const prevBtn = paginationElement.querySelector('.prev-page');
+            prevBtn.classList.toggle('opacity-50', currentPage === 1);
+            prevBtn.classList.toggle('cursor-not-allowed', currentPage === 1);
+
+            // Next page
+            const nextBtn = paginationElement.querySelector('.next-page');
+            nextBtn.classList.toggle('opacity-50', currentPage === totalPages);
+            nextBtn.classList.toggle('cursor-not-allowed', currentPage === totalPages);
+
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, startPage + 4);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageLink = document.createElement('a');
+                pageLink.href = '#';
+                pageLink.className = `px-3 py-2 border-t border-b border-lavender-300 ${i === currentPage ? 'bg-lavender-200 text-lavender-700' : 'bg-white text-lavender-700 hover:bg-lavender-50'}`;
+                pageLink.textContent = i;
+                pageLink.dataset.page = i;
+                pageNumbers.appendChild(pageLink);
+            }
+        }
+
+        // Load contests from API
+        async function loadContests(page = 1) {
+            elements.contestList.innerHTML = `
+                <div class="text-center py-8 text-lavender-500">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p>Loading contests...</p>
+                </div>
+            `;
+
+            const params = {
+                skip: (page - 1) * state.contests.pageSize,
+                limit: state.contests.pageSize,
+                ...state.contests.filters
+            };
+
+            const data = await fetchData(API.CONTESTS, params);
+            state.contests.data = data;
+            state.contests.currentPage = page;
+            state.contests.totalItems = data.length; // In real app, you'd get total count from API
+
+            // Calculate total pages (for demo, assume 100 total items)
+            const totalPages = Math.ceil(100 / state.contests.pageSize);
+            renderContests(data);
+            renderPagination(elements.contestPagination, page, totalPages);
+        }
+
+        // Load problems from API
+        async function loadProblems(page = 1) {
+            elements.problemList.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-lavender-500">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Loading problems...</p>
+                    </td>
+                </tr>
+            `;
+
+            const params = {
+                skip: (page - 1) * state.problems.pageSize,
+                limit: state.problems.pageSize,
+                ...state.problems.filters
+            };
+
+            console.log("Problem filters:", state.problems.filters);
+
+            const data = await fetchData(API.PROBLEMS, params);
+            state.problems.data = data;
+            state.problems.currentPage = page;
+            state.problems.totalItems = data.length; // In real app, you'd get total count from API
+
+            // Calculate total pages (for demo, assume 100 total items)
+            const totalPages = Math.ceil(100 / state.problems.pageSize);
+            renderProblems(data);
+            renderPagination(elements.problemPagination, page, totalPages);
+        }
+
+        // Show contest details in modal
+        async function showContestDetails(contestId) {
+            elements.contestModal.classList.remove('hidden');
+            elements.contestProblems.innerHTML = `
+                <div class="col-span-2 text-center py-8 text-lavender-500">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p>Loading contest details...</p>
+                </div>
+            `;
+
+            const contest = await fetchData(API.CONTEST_DETAIL(contestId));
+            if (!contest) {
+                elements.contestModalTitle.textContent = 'Contest not found';
+                return;
+            }
+
+            // Update modal content
+            elements.contestModalTitle.textContent = contest.name;
+            elements.contestModalDate.innerHTML = `<i class="fas fa-calendar mr-1"></i> ${formatDate(contest.start_time)}`;
+            elements.contestModalDuration.innerHTML = `<i class="fas fa-clock mr-1"></i> ${formatDuration(contest.duration)}`;
+
+            const phaseInfo = getPhaseInfo(contest.phase);
+            elements.contestModalPhase.textContent = phaseInfo.text;
+            elements.contestModalPhase.className = `px-2 py-1 rounded-full text-xs ${phaseInfo.class}`;
+
+            elements.contestDescription.textContent = contest.description || 'No description available';
+            elements.contestLink.href = contest.contest_url || '#';
+
+            // Render problems
+            elements.contestProblems.innerHTML = '';
+            contest.problems.forEach(problem => {
+                // Исправление: берем первый элемент массива статистики
+                const statistics = problem.statistics?.length > 0 ? problem.statistics[0] : null;
+                const solvedCount = statistics?.solved_count || 'N/A';
+
+                // Исправление: преобразуем теги в массив имен
+                const tagNames = problem.tags?.map(tag => tag.name) || [];
+
+                const problemCard = document.createElement('div');
+                problemCard.className = 'border border-lavender-200 rounded-lg p-4 hover:shadow-md transition';
+                problemCard.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-medium text-lavender-700">${problem.name}</h4>
+                            <div class="mt-1 flex items-center space-x-3">
+                                ${problem.rating ? `
+                                    <span class="px-2 py-1 ${getRatingClass(problem.rating)} rounded-full text-xs">
+                                        ${problem.rating}
+                                    </span>
+                                ` : ''}
+                                <span class="text-sm text-lavender-600">${solvedCount} solved</span>
+                            </div>
+                        </div>
+                        <a href="${problem.problem_url || '#'}" target="_blank" class="text-rose-500 hover:text-rose-700">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-1">
+                        ${tagNames.map(tag => `
+                            <span class="bg-lavender-100 text-lavender-700 px-2 py-1 rounded-full text-xs">${tag}</span>
+                        `).join('')}
+                    </div>
+                `;
+                elements.contestProblems.appendChild(problemCard);
+            });
+        }
+
+        // Apply contest filters
+        function applyContestFilters() {
+            state.contests.filters = {
+                name: elements.contestSearch.value,
+                contest_type: document.getElementById('contest-type-filter').value,
+                phase: document.getElementById('quick-phase-filter').value,
+                min_duration: document.getElementById('min-duration').value || null,
+                max_duration: document.getElementById('max-duration').value || null,
+                start_time_from: document.getElementById('start-time-from').value || null,
+                start_time_to: document.getElementById('start-time-to').value || null,
+                min_problems: null,
+                max_problems: null
+            };
+            loadContests(1);
+        }
+
+        // Apply problem filters
+        function applyProblemFilters() {
+            // Get selected tags
+            const selectedTags = Array.from(elements.problemTags.selectedOptions)
+                .map(option => option.value);
+
+            state.problems.filters = {
+                name: elements.problemSearch.value,
+                min_rating: document.getElementById('min-rating').value || null,
+                max_rating: document.getElementById('max-rating').value || null,
+                include_null_rating: elements.includeNullRating.checked,
+                tags: selectedTags,
+                contest_id: null,
+                min_solved_count: document.getElementById('min-solved').value || null
+            };
+
+            console.log("Applying problem filters:", state.problems.filters);
+            loadProblems(1);
+        }
+
+        // Sync data function
+        async function syncData() {
+            elements.syncDataBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Syncing...';
+            elements.syncDataBtn.disabled = true;
+
+            try {
+                // This endpoint should trigger data synchronization in your backend
+                const response = await fetch(API.SYNC_DATA, { method: 'POST' });
+                if (response.ok) {
+                    alert('Data synchronized successfully!');
+                    // Reload data
+                    if (state.currentTab === 'contests') {
+                        loadContests();
+                    } else {
+                        loadProblems();
+                    }
+                } else {
+                    throw new Error('Sync failed');
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                alert('Failed to sync data. Please try again.');
+            } finally {
+                elements.syncDataBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Sync Data';
+                elements.syncDataBtn.disabled = false;
+            }
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            state.currentTab = tab;
+
+            // Update navigation
+            elements.navLinks.forEach(link => {
+                if (link.dataset.target === tab) {
+                    link.classList.add('bg-lavender-200', 'text-lavender-700', 'font-medium');
+                    link.classList.remove('hover:bg-lavender-100', 'text-lavender-600');
+                } else {
+                    link.classList.remove('bg-lavender-200', 'text-lavender-700', 'font-medium');
+                    link.classList.add('hover:bg-lavender-100', 'text-lavender-600');
+                }
+            });
+
+            // Show/hide sections
+            if (tab === 'contests') {
+                document.getElementById('contests').classList.remove('hidden');
+                document.getElementById('problems').classList.add('hidden');
+                loadContests();
+            } else if (tab === 'problems') {
+                document.getElementById('problems').classList.remove('hidden');
+                document.getElementById('contests').classList.add('hidden');
+                loadProblems();
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load initial data
+            loadContests();
+
+            // Tab navigation
+            elements.navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchTab(link.dataset.target);
+                });
+            });
+
+            // Pagination
+            elements.contestPagination.addEventListener('click', (e) => {
+                if (e.target.classList.contains('prev-page') && state.contests.currentPage > 1) {
+                    loadContests(state.contests.currentPage - 1);
+                } else if (e.target.classList.contains('next-page')) {
+                    loadContests(state.contests.currentPage + 1);
+                } else if (e.target.dataset.page) {
+                    loadContests(parseInt(e.target.dataset.page));
+                }
+            });
+
+            elements.problemPagination.addEventListener('click', (e) => {
+                if (e.target.classList.contains('prev-page') && state.problems.currentPage > 1) {
+                    loadProblems(state.problems.currentPage - 1);
+                } else if (e.target.classList.contains('next-page')) {
+                    loadProblems(state.problems.currentPage + 1);
+                } else if (e.target.dataset.page) {
+                    loadProblems(parseInt(e.target.dataset.page));
+                }
+            });
+
+            // Filter buttons
+            elements.contestFilterBtn.addEventListener('click', () => {
+                elements.contestFilters.classList.toggle('hidden');
+            });
+
+            elements.problemFilterBtn.addEventListener('click', () => {
+                elements.problemFilters.classList.toggle('hidden');
+            });
+
+            // Apply filters
+            elements.applyContestFilters.addEventListener('click', applyContestFilters);
+            elements.applyProblemFilters.addEventListener('click', applyProblemFilters);
+
+            // Search functionality
+            elements.contestSearch.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') applyContestFilters();
+            });
+
+            elements.problemSearch.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') applyProblemFilters();
+            });
+
+            // Quick filters
+            elements.quickPhaseFilter.addEventListener('change', applyContestFilters);
+            elements.quickRatingFilter.addEventListener('change', () => {
+                if (state.currentTab === 'problems') {
+                    const [min, max] = elements.quickRatingFilter.value.split('-').map(Number);
+                    document.getElementById('min-rating').value = min || '';
+                    document.getElementById('max-rating').value = max || '';
+                    applyProblemFilters();
+                }
+            });
+
+            // Modal
+            elements.closeModal.addEventListener('click', () => {
+                elements.contestModal.classList.add('hidden');
+            });
+
+            elements.modalCloseBtn.addEventListener('click', () => {
+                elements.contestModal.classList.add('hidden');
+            });
+
+            // Sync data
+            elements.syncDataBtn.addEventListener('click', syncData);
+        });
+    </script>
+</body>
+</html>
